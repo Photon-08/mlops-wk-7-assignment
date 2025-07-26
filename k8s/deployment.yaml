@@ -19,3 +19,10 @@ spec:
           image: us-central1-docker.pkg.dev/banded-cumulus-466503/my-repo/iris-api:latest
           ports:
             - containerPort: 8000
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "1024Mi"
+            limits:
+              cpu: "200m"
+              memory: "2048Mi"

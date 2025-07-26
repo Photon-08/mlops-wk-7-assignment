@@ -19,9 +19,8 @@ jobs:
       with:
         python-version: 3.11
 
-    - name: Install CML
-      run: |
-        pip install "cml<0.6.0"
+    - name: CML Setup
+      uses: iterative/setup-cml@v2.0.1
 
     - name: Set up Google Cloud SDK
       uses: google-github-actions/setup-gcloud@v1

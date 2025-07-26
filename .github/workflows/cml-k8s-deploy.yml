@@ -103,17 +103,19 @@ jobs:
           -H "Content-Type: application/json" \
           -d '{"sepal_length": 5.1, "sepal_width": 3.5, "petal_length": 1.4, "petal_width": 0.2}')
         echo "RESPONSE=$RESPONSE" >> $GITHUB_ENV
+        echo "Response: $RESPONSE"
+        echo "Got Output from prediction endpoint"
     
     - name: Create CML report comment
-  if: ${{ env.RESPONSE != '' }}
-  env:
-    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  run: |
-    echo "## 🚀 Iris Model Deployed and Responding" > report.md
-    echo "**Endpoint:** http://${EXTERNAL_IP}:8000/predict" >> report.md
-    echo "" >> report.md
-    echo "**Sample Prediction Response:**" >> report.md
-    echo "\`\`\`json" >> report.md
-    echo "${{ env.RESPONSE }}" >> report.md
-    echo "\`\`\`" >> report.md
-    cml comment create --publish report.md
+      if: ${{ env.RESPONSE != '' }}
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        echo "## 🚀 Iris Model Deployed and Responding" > report.md
+        echo "**Endpoint:** http://${EXTERNAL_IP}:8000/predict" >> report.md
+        echo "" >> report.md
+        echo "**Sample Prediction Response:**" >> report.md
+        echo "\`\`\`json" >> report.md
+        echo "${{ env.RESPONSE }}" >> report.md
+        echo "\`\`\`" >> report.md
+        cml comment create --publish report.md

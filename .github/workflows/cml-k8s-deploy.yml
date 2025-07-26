@@ -105,6 +105,8 @@ jobs:
     
     - name: Create CML report comment
       if: ${{ env.RESPONSE != '' }}
+      env:
+          REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         echo "## 🚀 Iris Model Deployed and Responding" > report.md
         echo "**Endpoint:** http://${EXTERNAL_IP}:8000/predict" >> report.md

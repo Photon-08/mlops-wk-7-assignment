@@ -18,7 +18,7 @@ class IrisInput(BaseModel):
 
 @app.get("/")
 def read_root():
-    return {"message": "Iris classification API is live!"}
+    return {"message": "Iris classification API is live for prediction!"}
 
 @app.post("/predict")
 def predict_iris(data: IrisInput):

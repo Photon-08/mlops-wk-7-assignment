@@ -8,6 +8,7 @@ on:
 permissions:
   contents: read
   pull-requests: write
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -104,15 +105,15 @@ jobs:
         echo "RESPONSE=$RESPONSE" >> $GITHUB_ENV
     
     - name: Create CML report comment
-      if: ${{ env.RESPONSE != '' }}
-      env:
-          REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: |
-        echo "## 🚀 Iris Model Deployed and Responding" > report.md
-        echo "**Endpoint:** http://${EXTERNAL_IP}:8000/predict" >> report.md
-        echo "" >> report.md
-        echo "**Sample Prediction Response:**" >> report.md
-        echo "\`\`\`json" >> report.md
-        echo "${{ env.RESPONSE }}" >> report.md
-        echo "\`\`\`" >> report.md
-        cml comment create --publish report.md
+  if: ${{ env.RESPONSE != '' }}
+  env:
+    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  run: |
+    echo "## 🚀 Iris Model Deployed and Responding" > report.md
+    echo "**Endpoint:** http://${EXTERNAL_IP}:8000/predict" >> report.md
+    echo "" >> report.md
+    echo "**Sample Prediction Response:**" >> report.md
+    echo "\`\`\`json" >> report.md
+    echo "${{ env.RESPONSE }}" >> report.md
+    echo "\`\`\`" >> report.md
+    cml comment create --publish report.md

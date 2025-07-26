@@ -74,7 +74,7 @@ jobs:
       run: |
         kubectl apply -f k8s/deployment.yaml
         kubectl apply -f k8s/service.yaml
-        sleep 180  # Wait for deployment to stabilize
+        sleep 120s  # Wait for deployment to stabilize
     
 
     ###############################################
@@ -83,7 +83,7 @@ jobs:
     - name: Wait for service to get external IP
       run: |
         for i in {1..10}; do
-          EXTERNAL_IP=$(kubectl get svc iris-api-deployment-service -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+          EXTERNAL_IP=$(kubectl get svc iris-api-service-ci -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
           if [[ -n "$EXTERNAL_IP" ]]; then
             echo "External IP assigned: $EXTERNAL_IP"
             echo "EXTERNAL_IP=$EXTERNAL_IP" >> $GITHUB_ENV

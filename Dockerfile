@@ -7,7 +7,6 @@ WORKDIR /app
 # Copy requirements first (for better caching)
 COPY requirements.txt .
 
-COPY models.joblib /app/models.joblib
 
 # Install dependencies
 RUN pip install --no-cache-dir -r requirements.txt

@@ -4,7 +4,7 @@ metadata:
   name: iris-api-deployment-service
 spec:
   selector:
-    app: iris-api
+    app: iris-api-ci
   type: LoadBalancer
   ports:
   - protocol: TCP

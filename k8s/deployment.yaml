@@ -1,9 +1,9 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: iris-api-deployment
+  name: iris-api-deployment-ci
   labels:
-    app: iris-api
+    app: iris-api-ci
 spec:
   replicas: 1
   selector:

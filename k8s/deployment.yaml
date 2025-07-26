@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: iris-api
-          image: us-central1-docker.pkg.dev/banded-cumulus-466503-q7/my-repo/iris-api:latest
+          image: us-central1-docker.pkg.dev/banded-cumulus-466503-q7/my-repo/iris-api-test:latest
 
           ports:
             - containerPort: 8000

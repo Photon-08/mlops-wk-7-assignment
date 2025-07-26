@@ -1,12 +1,12 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: iris-api-deployment-service
+  name: iris-api-service-ci
 spec:
   selector:
     app: iris-api-ci
   type: LoadBalancer
   ports:
-  - protocol: TCP
-    port: 8000
-    targetPort: 8000
+    - protocol: TCP
+      port: 8000
+      targetPort: 8000

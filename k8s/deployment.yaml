@@ -8,15 +8,14 @@ spec:
   replicas: 1
   selector:
     matchLabels:
-      app: iris-api
+      app: iris-api-ci
   template:
     metadata:
       labels:
-        app: iris-api
+        app: iris-api-ci
     spec:
       containers:
-      - name: iris-api
-        image: us-central1-docker.pkg.dev/banded-cumulus-466503-q7/my-repo/iris-api:latest
-        ports:
-        - containerPort: 8000
-        imagePullPolicy: Always
+        - name: iris-api
+          image: us-central1-docker.pkg.dev/banded-cumulus-466503/my-repo/iris-api:latest
+          ports:
+            - containerPort: 8000

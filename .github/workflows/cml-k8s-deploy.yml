@@ -21,7 +21,7 @@ jobs:
 
     - name: Install CML
       run: |
-        pip install cml
+        pip install "cml<0.6.0"
 
     - name: Set up Google Cloud SDK
       uses: google-github-actions/setup-gcloud@v1

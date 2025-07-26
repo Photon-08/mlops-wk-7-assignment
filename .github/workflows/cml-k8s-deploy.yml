@@ -14,24 +14,39 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v3
 
-    - name: Set up Python
+    - name: Set up Python for CML
       uses: actions/setup-python@v4
       with:
         python-version: 3.11
 
-    - name: CML Setup
+    - name: Stup CML
       uses: iterative/setup-cml@v2.0.1
 
+    ###############################################
+    # ✅ Authenticate to Google Cloud using SA key
+    ###############################################
+    - name: Authenticate to Google Cloud
+      uses: google-github-actions/auth@v1
+      with:
+        credentials_json: '${{ secrets.GCP_SA_KEY }}'
+
+    ###############################################
+    # ✅ Set up Google Cloud SDK
+    ###############################################
     - name: Set up Google Cloud SDK
       uses: google-github-actions/setup-gcloud@v1
       with:
         project_id: ${{ secrets.GCP_PROJECT_ID }}
-        service_account_key: ${{ secrets.GCP_SA_KEY }}
-        export_default_credentials: true
 
-    - name: Authenticate Docker with Artifact Registry
+    ###############################################
+    # ✅ Configure Docker to use Artifact Registry
+    ###############################################
+    - name: Configure Docker for Artifact Registry
       run: gcloud auth configure-docker us-central1-docker.pkg.dev
 
+    ###############################################
+    # ✅ Build & Push Docker Image
+    ###############################################
     - name: Build Docker image
       run: |
         docker build -t us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/my-repo/iris-api:latest .
@@ -40,7 +55,10 @@ jobs:
       run: |
         docker push us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/my-repo/iris-api:latest
 
-    - name: Set up GKE credentials
+    ###############################################
+    # ✅ Get GKE credentials and deploy
+    ###############################################
+    - name: Get GKE credentials
       run: |
         gcloud container clusters get-credentials ${{ secrets.GKE_CLUSTER_NAME }} \
           --region ${{ secrets.GCP_REGION }}
@@ -50,24 +68,33 @@ jobs:
         kubectl apply -f k8s/deployment.yaml
         kubectl apply -f k8s/service.yaml
 
-    - name: Wait for service to be ready
+    ###############################################
+    # ✅ Wait for external IP and comment with CML
+    ###############################################
+    - name: Wait for service to get external IP
       run: |
-        echo "Waiting for external IP..."
-        sleep 60
-        kubectl get svc iris-api-deployment-service -o json
+        for i in {1..10}; do
+          EXTERNAL_IP=$(kubectl get svc iris-api-deployment-service -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+          if [[ -n "$EXTERNAL_IP" ]]; then
+            echo "External IP assigned: $EXTERNAL_IP"
+            echo "EXTERNAL_IP=$EXTERNAL_IP" >> $GITHUB_ENV
+            break
+          fi
+          echo "Waiting for external IP..."
+          sleep 10
+        done
 
-    - name: Send CML report
+    - name: Create CML deployment report
       env:
         REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
-        EXTERNAL_IP=$(kubectl get svc iris-api-deployment-service -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
         echo "## 🚀 Iris Model Deployed to GKE" > report.md
         echo "" >> report.md
-        echo "**Endpoint**: http://$EXTERNAL_IP:8000/predict" >> report.md
+        echo "**Endpoint:** http://${{ env.EXTERNAL_IP }}:8000/predict" >> report.md
         echo "" >> report.md
-        echo "Try it with:" >> report.md
+        echo "**Try it:**" >> report.md
         echo "\`\`\`bash" >> report.md
-        echo "curl -X POST http://$EXTERNAL_IP:8000/predict \\" >> report.md
+        echo "curl -X POST http://${{ env.EXTERNAL_IP }}:8000/predict \\" >> report.md
         echo "  -H 'Content-Type: application/json' \\" >> report.md
         echo "  -d '{\"sepal_length\": 5.1, \"sepal_width\": 3.5, \"petal_length\": 1.4, \"petal_width\": 0.2}'" >> report.md
         echo "\`\`\`" >> report.md

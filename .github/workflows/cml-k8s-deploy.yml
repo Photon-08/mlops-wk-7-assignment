@@ -5,7 +5,9 @@ on:
     branches:
       - main
   workflow_dispatch:
-
+permissions:
+  contents: read
+  pull-requests: write
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -92,18 +94,35 @@ jobs:
           sleep 100
         done
 
-    - name: Create CML deployment report
-      env:
-        REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - name: Wait for LoadBalancer IP
       run: |
-        echo "## 🚀 Iris Model Deployed to GKE" > report.md
+        echo "Waiting for LoadBalancer IP..."
+        for i in {1..20}; do
+          IP=$(kubectl get svc iris-api-service -o=jsonpath='{.status.loadBalancer.ingress[0].ip}')
+          if [[ -n "$IP" ]]; then
+            echo "IP found: $IP"
+            echo "SERVICE_IP=$IP" >> $GITHUB_ENV
+            break
+          fi
+          echo "Waiting for external IP to be assigned..."
+          sleep 15
+        done
+    - name: Test prediction endpoint
+      id: test-predict
+      run: |
+        RESPONSE=$(curl -s -X POST "http://${SERVICE_IP}:8000/predict" \
+          -H "Content-Type: application/json" \
+          -d '{"sepal_length": 5.1, "sepal_width": 3.5, "petal_length": 1.4, "petal_width": 0.2}')
+        echo "RESPONSE=$RESPONSE" >> $GITHUB_ENV
+    
+    - name: Create CML report comment
+      if: ${{ env.RESPONSE != '' }}
+      run: |
+        echo "## 🚀 Iris Model Deployed and Responding" > report.md
+        echo "**Endpoint:** http://${{ env.SERVICE_IP }}:8000/predict" >> report.md
         echo "" >> report.md
-        echo "**Endpoint:** http://${{ env.EXTERNAL_IP }}:8000/predict" >> report.md
-        echo "" >> report.md
-        echo "**Try it:**" >> report.md
-        echo "\`\`\`bash" >> report.md
-        echo "curl -X POST http://${{ env.EXTERNAL_IP }}:8000/predict \\" >> report.md
-        echo "  -H 'Content-Type: application/json' \\" >> report.md
-        echo "  -d '{\"sepal_length\": 5.1, \"sepal_width\": 3.5, \"petal_length\": 1.4, \"petal_width\": 0.2}'" >> report.md
+        echo "**Sample Prediction Response:**" >> report.md
+        echo "\`\`\`json" >> report.md
+        echo "${{ env.RESPONSE }}" >> report.md
         echo "\`\`\`" >> report.md
         cml comment create --publish report.md

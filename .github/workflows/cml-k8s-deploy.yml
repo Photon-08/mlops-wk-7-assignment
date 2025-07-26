@@ -1,0 +1,44 @@
+name: CML K8s Deploy
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  deploy-to-gke:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Set up Google Cloud SDK
+      uses: google-github-actions/setup-gcloud@v1
+      with:
+        project_id: ${{ secrets.GCP_PROJECT_ID }}
+        service_account_key: ${{ secrets.GCP_SA_KEY }}
+        export_default_credentials: true
+
+    - name: Configure Docker to use Google Artifact Registry
+      run: |
+        gcloud auth configure-docker us-central1-docker.pkg.dev
+
+    - name: Build Docker image
+      run: |
+        docker build -t us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/my-repo/iris-api:latest .
+
+    - name: Push Docker image to Artifact Registry
+      run: |
+        docker push us-central1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/my-repo/iris-api:latest
+
+    - name: Set up Kubeconfig for GKE
+      run: |
+        gcloud container clusters get-credentials ${{ secrets.GKE_CLUSTER_NAME }} \
+          --region ${{ secrets.GCP_REGION }}
+
+    - name: Deploy to GKE
+      run: |
+        kubectl apply -f k8s/deployment.yaml
+        kubectl apply -f k8s/service.yaml

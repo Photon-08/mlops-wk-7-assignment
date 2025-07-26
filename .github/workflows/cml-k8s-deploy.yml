@@ -80,8 +80,9 @@ jobs:
             echo "EXTERNAL_IP=$EXTERNAL_IP" >> $GITHUB_ENV
             break
           fi
+          sleep 100
           echo "Waiting for external IP..."
-          sleep 10
+          sleep 100
         done
 
     - name: Create CML deployment report

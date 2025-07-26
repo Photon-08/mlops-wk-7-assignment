@@ -94,23 +94,11 @@ jobs:
           sleep 100
         done
 
-    - name: Wait for LoadBalancer IP
-      run: |
-        echo "Waiting for LoadBalancer IP..."
-        for i in {1..20}; do
-          IP=$(kubectl get svc iris-api-service -o=jsonpath='{.status.loadBalancer.ingress[0].ip}')
-          if [[ -n "$IP" ]]; then
-            echo "IP found: $IP"
-            echo "SERVICE_IP=$IP" >> $GITHUB_ENV
-            break
-          fi
-          echo "Waiting for external IP to be assigned..."
-          sleep 15
-        done
+    
     - name: Test prediction endpoint
       id: test-predict
       run: |
-        RESPONSE=$(curl -s -X POST "http://${SERVICE_IP}:8000/predict" \
+        RESPONSE=$(curl -s -X POST "http://${EXTERNAL_IP}:8000/predict" \
           -H "Content-Type: application/json" \
           -d '{"sepal_length": 5.1, "sepal_width": 3.5, "petal_length": 1.4, "petal_width": 0.2}')
         echo "RESPONSE=$RESPONSE" >> $GITHUB_ENV
@@ -119,7 +107,7 @@ jobs:
       if: ${{ env.RESPONSE != '' }}
       run: |
         echo "## 🚀 Iris Model Deployed and Responding" > report.md
-        echo "**Endpoint:** http://${{ env.SERVICE_IP }}:8000/predict" >> report.md
+        echo "**Endpoint:** http://${{ EXTERNAL_IP }}:8000/predict" >> report.md
         echo "" >> report.md
         echo "**Sample Prediction Response:**" >> report.md
         echo "\`\`\`json" >> report.md

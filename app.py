@@ -42,7 +42,7 @@ FastAPIInstrumentor.instrument_app(app)
 # --- Model Loading ---
 # Try to load the model and store its state
 try:
-    model = joblib.load('model.pkl')
+    model = joblib.load('model.joblib')  # Ensure this path is correct relative to your app.py
     model_ready = True
     print("Model loaded successfully.")
 except Exception as e:

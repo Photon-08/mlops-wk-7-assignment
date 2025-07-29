@@ -1,23 +1,63 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: iris-api-deployment-ci
+  name: ml-model-deployment
   labels:
-    app: iris-api-ci
+    app: ml-model
 spec:
-  replicas: 1
+  replicas: 2 # Start with 2 replicas for availability
   selector:
     matchLabels:
-      app: iris-api-ci
+      app: ml-model
   template:
     metadata:
       labels:
-        app: iris-api-ci
+        app: ml-model
     spec:
       containers:
-        - name: iris-api
-          image: us-central1-docker.pkg.dev/banded-cumulus-466503-q7/my-repo/iris-api-test:latest
+      - name: ml-model-app
+        # IMPORTANT: Replace this with the path to your container image in GCR
+        # Example: gcr.io/your-gcp-project-id/your-app-name:v1
+        image: us-central1-docker.pkg.dev/banded-cumulus-466503-q7/my-repo/iris-api-test:latest
+        # Ensure the image is built with the latest code and pushed to GCR
+        # Use the 'latest' tag for development, but consider versioning for production
+        # Use 'Always' for development to ensure the latest image is pulled
+        # In production, you might want to use a specific version tag instead of 'latest' 
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8080 # The port your FastAPI app runs on via uvicorn
+        
+        # --- Liveness Probe ---
+        # Checks if the application is running. If this fails, Kubernetes
+        # will restart the container.
+        livenessProbe:
+          httpGet:
+            path: /live      # The /live endpoint in your FastAPI app
+            port: 8080
+          initialDelaySeconds: 15 # Wait 15 seconds before first probe
+          periodSeconds: 20       # Probe every 20 seconds
+          timeoutSeconds: 5
+          failureThreshold: 3
 
-          ports:
-            - containerPort: 8000
-          
+        # --- Readiness Probe ---
+        # Checks if the app is ready to handle traffic (e.g., model is loaded).
+        # If this fails, the pod is removed from the service's load balancer.
+        readinessProbe:
+          httpGet:
+            path: /ready     # The /ready endpoint in your FastAPI app
+            port: 8080
+          initialDelaySeconds: 20 # Wait a bit longer for the model to load
+          periodSeconds: 10       # Probe every 10 seconds
+          timeoutSeconds: 5
+          failureThreshold: 3
+        
+        # --- Resource Requests and Limits ---
+        # Helps Kubernetes schedule pods efficiently and prevents one pod
+        # from consuming all node resources.
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m" # 0.25 of a CPU core
+          limits:
+            memory: "512Mi"
+            cpu: "500m" # 0.5 of a CPU core

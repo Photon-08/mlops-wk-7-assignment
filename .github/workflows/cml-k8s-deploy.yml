@@ -75,7 +75,7 @@ jobs:
       run: |
         kubectl apply -f k8s/deployment.yaml
         kubectl apply -f k8s/service.yaml
-        sleep 120s  # Wait for deployment to stabilize
+        sleep 80s  # Wait for deployment to stabilize
     
 
     ###############################################

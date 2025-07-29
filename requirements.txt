@@ -1,10 +1,11 @@
-fastapi==0.88.0
-uvicorn==0.20.0 # ASGI server to run the app
-pydantic==1.10.2
-joblib==1.2.0
-numpy==1.23.5
-scikit-learn==1.2.0
-opentelemetry-api==1.15.0
-opentelemetry-sdk==1.15.0
-opentelemetry-instrumentation-fastapi==0.36b0
-opentelemetry-exporter-console==1.15.0
+fastapi
+uvicorn[standard]
+pydantic
+
+# Exporter for Google Cloud
+opentelemetry-exporter-gcp-trace
+
+# ML Libraries for Iris Model
+scikit-learn
+pandas
+numpy

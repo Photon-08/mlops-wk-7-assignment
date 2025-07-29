@@ -1,0 +1,30 @@
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  # A descriptive name for the Horizontal Pod Autoscaler resource
+  name: ml-model-hpa
+spec:
+  # This section defines the target resource to scale
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    # This name MUST match the name of your Deployment resource
+    name: ml-model-deployment
+  
+  # The minimum number of replicas the deployment can scale down to.
+  # This should match the 'replicas' field in your Deployment for the initial state.
+  minReplicas: 2
+  
+  # The maximum number of replicas the deployment can scale up to.
+  maxReplicas: 10
+  
+  # The metrics used to determine when to scale up or down.
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        # The target average CPU utilization over all the pods, as a percentage.
+        # The HPA will create more pods when the average CPU usage exceeds this value.
+        averageUtilization: 60

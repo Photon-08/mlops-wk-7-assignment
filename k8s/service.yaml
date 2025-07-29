@@ -11,7 +11,7 @@ spec:
   ports:
     - protocol: TCP
       port: 8000 # The external port clients will connect to
-      targetPort: 8080 # The internal port on the pod where the app is running
+      targetPort: 8000 # The internal port on the pod where the app is running
   
   # Type: LoadBalancer creates a network load balancer in your GCP project,
   # providing an external IP address to access the service. For internal

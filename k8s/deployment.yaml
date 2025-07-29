@@ -25,7 +25,7 @@ spec:
         # In production, you might want to use a specific version tag instead of 'latest' 
         imagePullPolicy: Always
         ports:
-        - containerPort: 8080 # The port your FastAPI app runs on via uvicorn
+        - containerPort: 8000 # The port your FastAPI app runs on via uvicorn
         
         # --- Liveness Probe ---
         # Checks if the application is running. If this fails, Kubernetes
@@ -33,7 +33,7 @@ spec:
         livenessProbe:
           httpGet:
             path: /live      # The /live endpoint in your FastAPI app
-            port: 8080
+            port: 8000
           initialDelaySeconds: 15 # Wait 15 seconds before first probe
           periodSeconds: 20       # Probe every 20 seconds
           timeoutSeconds: 5
@@ -45,7 +45,7 @@ spec:
         readinessProbe:
           httpGet:
             path: /ready     # The /ready endpoint in your FastAPI app
-            port: 8080
+            port: 8000
           initialDelaySeconds: 20 # Wait a bit longer for the model to load
           periodSeconds: 10       # Probe every 10 seconds
           timeoutSeconds: 5
